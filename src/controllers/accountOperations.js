@@ -113,15 +113,19 @@ export const verifyEmail = async (req, res) => {
         data: null,
       });
     }
-    //after user is verified then the following information can be changed successfully
-    isTokenCorrect.isVerifed = true;
+    isTokenCorrect.isVerified = true;
 
     isTokenCorrect.verificationToken = undefined;
 
+    //save the changes
+
+    await isTokenCorrect.save();
     res.status(200).json({
       success: false,
       message: "Email has been verified successfully !",
+      data: isTokenCorrect,
     });
+    //after user is verified then the following information can be changed successfully
   } catch (error) {
     console.error(error);
     res.status(400).json({
