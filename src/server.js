@@ -2,6 +2,7 @@ import express from "express";
 import "dotenv/config";
 import {connectDb} from "./database/connect.js";
 import {userRouter} from "./routes/accounts.js";
+import {jokesRouter} from "./routes/jokesRoutes.js";
 const app = express();
 
 app.use(express.json());
@@ -13,7 +14,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api", userRouter);
+app.use("/api", userRouter, jokesRouter);
 
 connectDb();
 app.listen(process.env.PORT, () => {
