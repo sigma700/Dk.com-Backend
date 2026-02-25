@@ -96,7 +96,7 @@ export const logintoAccount = async (req, res) => {
   }
 };
 
-//for email safety
+//for email safety we will have to put this code snippet so that we can have only the verified users into the site
 
 export const verifyEmail = async (req, res) => {
   const {token} = req.body;
@@ -105,7 +105,6 @@ export const verifyEmail = async (req, res) => {
     const isTokenCorrect = await User.findOne({
       verificationToken: token,
     });
-
     if (!isTokenCorrect) {
       return res.status(401).json({
         sucess: false,
@@ -116,6 +115,8 @@ export const verifyEmail = async (req, res) => {
     isTokenCorrect.isVerified = true;
 
     isTokenCorrect.verificationToken = undefined;
+
+    //this is just a test for the keyboard to see if its working as required by me as the user please make sure that its working as usual . Fam
 
     //save the changes
 
