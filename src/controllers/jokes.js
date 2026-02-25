@@ -2,7 +2,6 @@
 import "dotenv/config";
 export const fetchJokes = async (req, res) => {
   try {
-    //remember to always set the headers ha ha ha
     const response = await fetch(process.env.JOKES_ENDP, {
       headers: {
         Accept: "application/json",
