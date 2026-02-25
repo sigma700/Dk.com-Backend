@@ -18,8 +18,6 @@ export const createAccount = async (req, res) => {
 
     const verificationToken = genToken();
 
-    console.log(verificationToken);
-
     const user = await User.create({
       firstName,
       lastName,
