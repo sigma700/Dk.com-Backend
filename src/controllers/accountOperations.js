@@ -134,5 +134,3 @@ export const verifyEmail = async (req, res) => {
     });
   }
 };
-
-//this is an irrelevant comment that i am placing over here just so that i can make a commit for the day ha ha ha
