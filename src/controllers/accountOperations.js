@@ -7,9 +7,8 @@ import {checkPass} from "../../utils/checkInputs.js";
 import {sendverMail} from "../../service/emails/verMail.js";
 
 export const createAccount = async (req, res) => {
-  //now we need to make any necessary adjustment needed for the information that the user has provided
   const {firstName, lastName, email, password} = req.body;
-  // const {userId} = req.params;
+  // {userId} = req.params;
 
   checkPass(res, password);
 
@@ -95,8 +94,6 @@ export const logintoAccount = async (req, res) => {
   }
 };
 
-//for email safety we will have to put this code snippet so that we can have only the verified users into the site
-
 export const verifyEmail = async (req, res) => {
   const {token} = req.body;
 
@@ -114,10 +111,6 @@ export const verifyEmail = async (req, res) => {
     isTokenCorrect.isVerified = true;
 
     isTokenCorrect.verificationToken = undefined;
-
-    //this is just a test for the keyboard to see if its working as required by me as the user please make sure that its working as usual . Fam
-
-    //save the changes
 
     await isTokenCorrect.save();
     res.status(200).json({
