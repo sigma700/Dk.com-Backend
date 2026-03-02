@@ -10,14 +10,12 @@ const productSchema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Consumable", "Electronic", "Washroom/Bathroom"],
+      enum: ["Consumable", "Electronic", "Bathroom"],
     },
-    images: [
-      {
-        data: {type: Buffer, required: true}, // the binary
-        contentType: {type: String, required: true}, // e.g.,
-      },
-    ],
+    image: {
+      data: {type: Buffer, required: true}, // the binary
+      contentType: {type: String, required: true}, // e.g.,
+    },
   },
   {timestamps: true},
 );
