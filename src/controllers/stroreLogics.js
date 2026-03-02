@@ -40,23 +40,33 @@ export const useStoreLogic = async (req, res) => {
   }
 };
 
-//logic for getting an image in a products page
+export const getProductData = async (req, res) => {
+  //lets check the product id at this section with also the image data finding made possible
 
-// export const getImage = async (req, res) => {
-//   try {
-//     const products = await Product.findById(req.params.id);
+  try {
+    const requiredProduct = await Product.findById(req.params.id);
 
-//     if (!product || !product.image || !product.image.data) {
-//       return res.status(404).json({
-//         message: "Could not find the image data !",
-//       });
-//       res.set("Content-Type", product.image.contentType);
-//       res.send(product.image.data);
-//     }
-//   } catch {
-//     res.status(500).json({
-//       sucess: false,
-//       message: "Could not find the image",
-//     });
-//   }
-// };
+    if (
+      !requiredProduct ||
+      !requiredProduct.image ||
+      !requiredProduct.image.data
+    ) {
+      return res.status(404).json({
+        sucess: false,
+        message: `The product with the id of ${id} cannot be retrieved !`,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Here if the product you are looking for !",
+      data: requiredProduct,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      sucess: false,
+      message: "Check the console for more info about the error message !",
+    });
+  }
+};
