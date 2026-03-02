@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {useStoreLogic} from "../controllers/stroreLogics.js";
+import {getProductData, useStoreLogic} from "../controllers/stroreLogics.js";
 import multer from "multer";
 export const storeRouter = Router();
 
@@ -10,3 +10,4 @@ const upload = multer({
   limits: {fileSize: 5 * 1024 * 1024},
 });
 storeRouter.post("/create-product", upload.single("image"), useStoreLogic);
+storeRouter.get("/get-product/:id", getProductData);
