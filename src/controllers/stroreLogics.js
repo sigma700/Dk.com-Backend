@@ -40,9 +40,8 @@ export const useStoreLogic = async (req, res) => {
   }
 };
 
+//to allow the user to see the data for individual product after clicking on iit
 export const getProductData = async (req, res) => {
-  //lets check the product id at this section with also the image data finding made possible
-
   try {
     const requiredProduct = await Product.findById(req.params.id);
 
@@ -67,6 +66,43 @@ export const getProductData = async (req, res) => {
     res.status(500).json({
       sucess: false,
       message: "Check the console for more info about the error message !",
+    });
+  }
+};
+//to allow the user to find a product by searching
+export const getProductsSrch = async (req, res) => {
+  const {q, category} = req.query;
+
+  let filter = {};
+
+  try {
+    if (q) {
+      filter.name = {$regex: q, $options: "i"};
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+    const searchedProducts = await Product.find(filter);
+
+    if (!q) {
+      return res.status(400).json({
+        sucess: false,
+        message: "Missing required search field !",
+      });
+    }
+
+    res.status(200).json({
+      sucess: false,
+      message: "Here are the products that you were looking for ",
+      data: searchedProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message:
+        "There was a problem somewhere in the code , check the console for more info about the error !",
+      data: null,
     });
   }
 };
