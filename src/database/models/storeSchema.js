@@ -30,7 +30,7 @@ const cartItemSchema = new Schema(
     quantity: {type: Number, required: true, min: 1},
     priceAtAdd: {type: Number, required: true, min: 0},
   },
-  {_id: false},
+  // {_id: false},
 );
 
 //burried in between the cart schema
@@ -41,6 +41,11 @@ const cartSchema = new Schema(
       ref: "User",
       required: true,
       unique: true,
+    },
+    sessionId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
     status: {
       type: String,

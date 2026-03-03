@@ -1,4 +1,4 @@
-import {Product} from "../database/models/storeSchema.js";
+import {Cart, Product} from "../database/models/storeSchema.js";
 
 export const useStoreLogic = async (req, res) => {
   //allow the admin to create the products that they are selling
@@ -78,6 +78,12 @@ export const getProductsSrch = async (req, res) => {
   try {
     if (q) {
       filter.name = {$regex: q, $options: "i"};
+    } else {
+      return res.status(404).json({
+        sucess: false,
+        message: `No products with the name of ${q} are found in the DB !`,
+        data: null,
+      });
     }
 
     if (category) {
@@ -105,4 +111,17 @@ export const getProductsSrch = async (req, res) => {
       data: null,
     });
   }
+};
+
+//CRUD operations for shopping cart algorithms
+
+//PUT/UPDATE CART
+export const updateCart = async (req, res) => {
+  const {itemId} = req.params;
+
+  try {
+    const updatedCart = await Cart.findByIdAndUpdate({
+      _id: itemId,
+    });
+  } catch (error) {}
 };
