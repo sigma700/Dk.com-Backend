@@ -1,3 +1,4 @@
+import {addToCart} from "../../utils/addToCart.js";
 import {Cart, Product} from "../database/models/storeSchema.js";
 
 export const useStoreLogic = async (req, res) => {
@@ -117,11 +118,27 @@ export const getProductsSrch = async (req, res) => {
 
 //PUT/UPDATE CART
 export const updateCart = async (req, res) => {
-  const {itemId} = req.params;
-
   try {
-    const updatedCart = await Cart.findByIdAndUpdate({
-      _id: itemId,
+    const {productId, quantity = 1} = req.body;
+    //checking if  user is logged in or not
+    const ownerField = req.user ? "user" : "sessionId";
+    const ownerValue = req.user ? req.user.id : req.session.id;
+    //debugging logs
+    console.log("Model being used", Cart.modelName);
+    console.log("Schema paths:", Object.keys(Cart.schema.paths));
+
+    const cart = await addToCart(ownerField, ownerValue, productId, quantity);
+    res.status(200).json({
+      sucess: true,
+      message: "Succesfully updated the cart section",
+      data: cart,
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      sucess: false,
+      message: "Check console for more info about the error !",
+      data: null,
+    });
+  }
 };

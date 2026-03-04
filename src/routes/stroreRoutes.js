@@ -2,6 +2,7 @@ import {Router} from "express";
 import {
   getProductData,
   getProductsSrch,
+  updateCart,
   useStoreLogic,
 } from "../controllers/stroreLogics.js";
 import multer from "multer";
@@ -16,3 +17,4 @@ const upload = multer({
 storeRouter.get("/get-searched", getProductsSrch);
 storeRouter.get("/get-product/:id", getProductData);
 storeRouter.post("/create-product", upload.single("image"), useStoreLogic);
+storeRouter.post("/cart/add", updateCart);
