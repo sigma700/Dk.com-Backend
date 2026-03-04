@@ -123,9 +123,6 @@ export const updateCart = async (req, res) => {
     //checking if  user is logged in or not
     const ownerField = req.user ? "user" : "sessionId";
     const ownerValue = req.user ? req.user.id : req.session.id;
-    //debugging logs
-    console.log("Model being used", Cart.modelName);
-    console.log("Schema paths:", Object.keys(Cart.schema.paths));
 
     const cart = await addToCart(ownerField, ownerValue, productId, quantity);
     res.status(200).json({
