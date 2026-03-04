@@ -39,8 +39,8 @@ const cartSchema = new Schema(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
       unique: true,
+      sparse: true,
     },
     sessionId: {
       type: String,

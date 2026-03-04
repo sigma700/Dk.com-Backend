@@ -15,7 +15,7 @@ export const addToCart = async (
 
   //now updating the currrent carT item
 
-  const cart = await Cart.findOneAndUpdate(
+  let cart = await Cart.findOneAndUpdate(
     {
       [ownerField]: ownerValue,
       status: "active",
@@ -24,18 +24,38 @@ export const addToCart = async (
     {
       $inc: {"items.$.quantity": quantity},
     },
-    {new: true},
+    {returnDocument: "after"},
   );
 
   if (cart) return cart;
   //if no cart exists then either create the cart or just add a new item : DAMN AM SMART
-  return Cart.findOneAndUpdate(
+  cart = await Cart.findOneAndUpdate(
     {[ownerField]: ownerValue, status: "active"},
     {
       $push: {
         items: {product: productId, quantity, priceAtAdd},
       },
     },
-    {upsert: true, new: true},
+
+    {returnDocument: "after", upsert: true},
   );
+  await mergeDuplicateItems(cart);
+
+  return cart;
+};
+
+//to avoid creating  a new document
+
+export const mergeDuplicateItems = async (cart) => {
+  const itemMap = new Map();
+  for (const item of cart.items) {
+    const key = item.product.toString();
+    if (itemMap.has(key)) {
+      itemMap.get(key).quantity += item.quantity;
+    } else {
+      itemMap.set(key, item);
+    }
+  }
+  cart.items = Array.from(itemMap.values());
+  await cart.save();
 };
