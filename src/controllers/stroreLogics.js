@@ -176,11 +176,9 @@ export const createOrder = async (req, res) => {
       subtotal += item.priceAtAdd * item.quantity;
     }
 
-    // 3. Calculate shipping fee (example: flat rate)
-    const shippingFee = 5.0; // or based on location
+    const shippingFee = 5.0;
     const total = subtotal + shippingFee;
 
-    // 4. Build order data
     const orderData = {
       user: userId,
       items: orderItems,
@@ -199,22 +197,18 @@ export const createOrder = async (req, res) => {
       orderStatus: "processing",
     };
 
-    // 5. Create order
     const order = await Order.create(orderData);
 
-    // 6. Optionally reduce stock (if you want to reserve immediately)
     for (const item of cart.items) {
       await Product.findByIdAndUpdate(item.product._id, {
         $inc: {stock: -item.quantity},
       });
     }
 
-    // 7. Clear the cart (or mark as converted)
     cart.status = "converted";
     cart.items = [];
     await cart.save();
 
-    // 8. Return success response
     res.status(201).json({
       success: true,
       message: "Order created successfully",
