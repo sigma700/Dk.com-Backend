@@ -59,28 +59,39 @@ const cartSchema = new Schema(
 
 export const Cart = mongoose.model("Cart", cartSchema);
 
-const orderItemSchema = new Schema(
-  {
-    product: {type: Schema.Types.ObjectId, ref: "Product", required: true},
-    quantity: {type: Number, required: true},
-    priceAtPurchase: {type: Number, required: true}, // snapshot for historical accuracy
-  },
-  {_id: false},
-);
+const orderItemSchema = new Schema({
+  product: {type: Schema.Types.ObjectId, ref: "Product"},
+  name: String,
+  price: Number,
+  quantity: Number,
+  image: String,
+});
 
-//order schema with also some embedded items
 const orderSchema = new Schema(
   {
     user: {type: Schema.Types.ObjectId, ref: "User", required: true},
-    cart: {type: Schema.Types.ObjectId, ref: "Cart"},
     items: [orderItemSchema],
-    totalAmount: {type: Number, required: true, min: 0},
-    status: {
+    subtotal: Number,
+    shippingFee: Number,
+    total: Number,
+    shippingAddress: {
+      email: String,
+      firstName: String,
+      lastName: String,
+      subCounty: String,
+      ward: String,
+      streetAddress: String,
+    },
+    paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      enum: ["pending", "paid", "failed"],
       default: "pending",
     },
-    paymentDetails: Schema.Types.Mixed,
+    orderStatus: {
+      type: String,
+      enum: ["processing", "shipped", "delivered", "cancelled"],
+      default: "processing",
+    },
   },
   {timestamps: true},
 );

@@ -1,5 +1,6 @@
 import {addToCart} from "../../utils/addToCart.js";
-import {Cart, Product} from "../database/models/storeSchema.js";
+import {Cart, Order, Product} from "../database/models/storeSchema.js";
+import {User} from "../database/models/userSchema.js";
 
 export const useStoreLogic = async (req, res) => {
   //allow the admin to create the products that they are selling
@@ -137,5 +138,90 @@ export const updateCart = async (req, res) => {
       message: "Check console for more info about the error !",
       data: null,
     });
+  }
+};
+
+export const createOrder = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {email, firstName, lastName, subCounty, ward, streetAddress} =
+      req.body;
+
+    const cart = await Cart.findOne({user: userId, status: "active"}).populate(
+      "items.product",
+    );
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({success: false, message: "Cart is empty"});
+    }
+
+    let subtotal = 0;
+    const orderItems = [];
+
+    for (const item of cart.items) {
+      const product = item.product;
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}`,
+        });
+      }
+
+      orderItems.push({
+        product: product._id,
+        name: product.name,
+        price: item.priceAtAdd,
+        quantity: item.quantity,
+        image: product.images?.[0] || null,
+      });
+      subtotal += item.priceAtAdd * item.quantity;
+    }
+
+    // 3. Calculate shipping fee (example: flat rate)
+    const shippingFee = 5.0; // or based on location
+    const total = subtotal + shippingFee;
+
+    // 4. Build order data
+    const orderData = {
+      user: userId,
+      items: orderItems,
+      subtotal,
+      shippingFee,
+      total,
+      shippingAddress: {
+        email,
+        firstName,
+        lastName,
+        subCounty,
+        ward,
+        streetAddress,
+      },
+      paymentStatus: "pending",
+      orderStatus: "processing",
+    };
+
+    // 5. Create order
+    const order = await Order.create(orderData);
+
+    // 6. Optionally reduce stock (if you want to reserve immediately)
+    for (const item of cart.items) {
+      await Product.findByIdAndUpdate(item.product._id, {
+        $inc: {stock: -item.quantity},
+      });
+    }
+
+    // 7. Clear the cart (or mark as converted)
+    cart.status = "converted";
+    cart.items = [];
+    await cart.save();
+
+    // 8. Return success response
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      data: order,
+    });
+  } catch (error) {
+    console.error("Create order error:", error);
+    res.status(500).json({success: false, message: "Server error"});
   }
 };

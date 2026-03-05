@@ -9,6 +9,7 @@ const userSchema = new Schema(
     firstName: String,
     lastName: String,
     isVerified: {type: String, default: false},
+    orders: {type: Array, ref: "Order"},
   },
   {
     timeStamps: true,

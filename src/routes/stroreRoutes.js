@@ -1,5 +1,6 @@
 import {Router} from "express";
 import {
+  createOrder,
   getProductData,
   getProductsSrch,
   updateCart,
@@ -18,3 +19,4 @@ storeRouter.get("/get-searched", getProductsSrch);
 storeRouter.get("/get-product/:id", getProductData);
 storeRouter.post("/create-product", upload.single("image"), useStoreLogic);
 storeRouter.post("/cart/add", updateCart);
+storeRouter.post("/cart/order", createOrder);
