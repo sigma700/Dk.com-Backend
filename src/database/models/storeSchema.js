@@ -92,6 +92,10 @@ const orderSchema = new Schema(
       enum: ["processing", "shipped", "delivered", "cancelled"],
       default: "processing",
     },
+    paymentMethod: {
+      type: String,
+      enum: ["CASH ON DELIVERY", "MobilePay"],
+    },
   },
   {timestamps: true},
 );

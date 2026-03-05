@@ -144,8 +144,15 @@ export const updateCart = async (req, res) => {
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {email, firstName, lastName, subCounty, ward, streetAddress} =
-      req.body;
+    const {
+      email,
+      firstName,
+      lastName,
+      subCounty,
+      ward,
+      streetAddress,
+      paymentMethod,
+    } = req.body;
 
     const cart = await Cart.findOne({user: userId, status: "active"}).populate(
       "items.product",
@@ -194,6 +201,7 @@ export const createOrder = async (req, res) => {
         streetAddress,
       },
       paymentStatus: "pending",
+      paymentMethod: paymentMethod,
       orderStatus: "processing",
     };
 
@@ -218,4 +226,8 @@ export const createOrder = async (req, res) => {
     console.error("Create order error:", error);
     res.status(500).json({success: false, message: "Server error"});
   }
+};
+
+export const checkOut = async (req, res) => {
+  //get all the required data
 };
