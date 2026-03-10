@@ -230,4 +230,5 @@ export const createOrder = async (req, res) => {
 
 export const checkOut = async (req, res) => {
   //get all the required data
+  //Initiation of payments
 };
