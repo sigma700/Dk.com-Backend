@@ -1,43 +1,41 @@
-//LOGIC FOR MAKING THE PAYMENTS WORK
-
 import axios from "axios";
 import {getAccessToken} from "../../utils/payments.js";
+import "dotenv/config";
 
-//STEP2 REGISTER C2B URLS
 export const initiatePayments = async (req, res) => {
   try {
-    const {phoneNumber, amount, billRefNumber} = req.body;
+    const {phoneNumber, amount} = req.body;
 
     const token = await getAccessToken();
 
     const response = await axios.post(
-      `${process.env.DARAJA_BASE_URL}`,
+      `${process.env.DARAJA_BASE_URL}/mpesa/c2b/v1/simulate`,
       {
-        ShortCode: process.env.SHORTCODE,
+        ShortCode: process.env.SHORT_CODE,
         CommandID: "CustomerPayBillOnline",
         Amount: amount,
         Msisdn: phoneNumber,
-        billRefNumber: billRefNumber,
+        BillRefNumber: "Sigma.com",
       },
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "appliaction/json",
+          "Content-Type": "application/json",
         },
       },
     );
 
-    console.log("Paymet simulated : ", response.data);
+    console.log("Payment simulated:", response.data);
     res.status(200).json({
-      sucess: true,
-      message: "Payment has been sucessfully initiated as wanted",
+      success: true,
+      message: "Payment successfully initiated!",
       data: response.data,
     });
   } catch (error) {
     console.error("Simulation Failed", error.response?.data || error.message);
     res.status(500).json({
-      sucess: false,
-      message: "Check the console for more info about the error message !",
+      success: false,
+      message: "Check console for error details",
     });
   }
 };

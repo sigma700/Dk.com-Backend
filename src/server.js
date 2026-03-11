@@ -7,6 +7,7 @@ import {storeRouter} from "./routes/stroreRoutes.js";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import {attachUserId, setOwner} from "../utils/decodeJwt.js";
+import {paymentRouter} from "./routes/paymentsRoute.js";
 
 const app = express();
 
@@ -36,7 +37,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api", userRouter, jokesRouter, storeRouter);
+app.use("/api", userRouter, jokesRouter, storeRouter, paymentRouter);
 
 connectDb();
 app.listen(process.env.PORT, () => {
