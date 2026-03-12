@@ -2,6 +2,7 @@ import axios from "axios";
 import {getAccessToken} from "../../utils/payments.js";
 import "dotenv/config";
 import {Order} from "../database/models/storeSchema.js";
+import {formatPhone} from "../../utils/numberFormater.js";
 
 export const initiatePayments = async (req, res) => {
   try {
@@ -18,8 +19,8 @@ export const initiatePayments = async (req, res) => {
       });
     }
 
-    const subTotal = order.subtotal;
-    const phoneNumber = order.shippingAddress.phoneNumber;
+    const subTotal = order.total;
+    const phoneNumber = formatPhone(order.shippingAddress.phoneNumber);
 
     const token = await getAccessToken();
 
