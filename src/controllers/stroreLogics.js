@@ -152,6 +152,7 @@ export const createOrder = async (req, res) => {
       ward,
       streetAddress,
       paymentMethod,
+      phoneNumber,
     } = req.body;
 
     const cart = await Cart.findOne({user: userId, status: "active"}).populate(
@@ -199,6 +200,7 @@ export const createOrder = async (req, res) => {
         subCounty,
         ward,
         streetAddress,
+        phoneNumber,
       },
       paymentStatus: "pending",
       paymentMethod: paymentMethod,

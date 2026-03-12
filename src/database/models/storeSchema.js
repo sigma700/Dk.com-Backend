@@ -81,6 +81,7 @@ const orderSchema = new Schema(
       subCounty: String,
       ward: String,
       streetAddress: String,
+      phoneNumber: String,
     },
     paymentStatus: {
       type: String,

@@ -1,10 +1,25 @@
 import axios from "axios";
 import {getAccessToken} from "../../utils/payments.js";
 import "dotenv/config";
+import {Order} from "../database/models/storeSchema.js";
 
 export const initiatePayments = async (req, res) => {
   try {
-    const {phoneNumber, amount} = req.body;
+    const {orderId} = req.params;
+    //Now i want to automatically get the amount from the cart page that already exists
+    const order = await Order.findById({
+      _id: orderId,
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        sucess: false,
+        message: "Order not found !",
+      });
+    }
+
+    const subTotal = order.subtotal;
+    const phoneNumber = order.shippingAddress.phoneNumber;
 
     const token = await getAccessToken();
 
@@ -13,7 +28,7 @@ export const initiatePayments = async (req, res) => {
       {
         ShortCode: process.env.SHORT_CODE,
         CommandID: "CustomerPayBillOnline",
-        Amount: amount,
+        Amount: subTotal,
         Msisdn: phoneNumber,
         BillRefNumber: "Sigma.com",
       },
