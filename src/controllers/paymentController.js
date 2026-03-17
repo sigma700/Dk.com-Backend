@@ -140,10 +140,6 @@ export const acceptPayment = async (req, res) => {
       return;
     }
 
-    // 6. Find order by BillRefNumber
-    // NOTE: Since BillRefNumber is "Sigma.com" in your simulation,
-    // you should pass the actual orderId as BillRefNumber in initiatePayments.
-    // See fix in initiatePayments below.
     const order = await Order.findOne({
       $or: [
         // Support both ObjectId and custom ref, depending on your fix
