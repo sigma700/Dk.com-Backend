@@ -58,7 +58,7 @@ const paymentSchema = new Schema(
       default: "completed",
     },
   },
-  {timestamps: true}, // createdAt and updatedAt
+  {timestamps: true},
 );
 
 export const Payment = model("Payment", paymentSchema);

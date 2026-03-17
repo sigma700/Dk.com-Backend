@@ -55,3 +55,66 @@ export const initiatePayments = async (req, res) => {
     });
   }
 };
+
+export const acceptPayment = async (req, res) => {
+  const {
+    TransID,
+    TransactionType,
+    TransAmount,
+    MSISDN,
+    FirstName,
+    MiddleName,
+    LastName,
+    BusinessShortCode,
+    BillRefNumber,
+    InvoiceNumber,
+    OrgAccountBalance,
+    TransTime,
+    ResultCode,
+    ResultDesc,
+  } = req.body;
+
+  if (ResultCode !== 0) {
+    // Payment failed or was cancelled by customer
+    await Order.findByIdAndUpdate(BillRefNumber, {
+      paymentStatus: "failed",
+    });
+
+    await Payment.create({
+      order: BillRefNumber,
+      transactionId: TransID || `FAILED-${Date.now()}`,
+      amount: TransAmount,
+      msisdn: MSISDN,
+      status: "failed",
+    });
+
+    console.log(
+      `❌ Payment failed for order ${BillRefNumber} — Reason: ${ResultDesc}`,
+    );
+    return res.json({ResultCode: 0, ResultDesc: "Received"});
+  }
+
+  await Payment.create({
+    order: BillRefNumber,
+    transactionId: TransID,
+    transactionType: TransactionType,
+    amount: TransAmount,
+    msisdn: MSISDN,
+    firstName: FirstName,
+    middleName: MiddleName,
+    lastName: LastName,
+    businessShortCode: BusinessShortCode,
+    billRefNumber: BillRefNumber,
+    invoiceNumber: InvoiceNumber,
+    orgAccountBalance: OrgAccountBalance,
+    transactionTime: TransTime,
+    status: "completed",
+  });
+
+  await Order.findByIdAndUpdate(BillRefNumber, {
+    paymentStatus: "paid",
+  });
+
+  console.log(`✅ Order ${BillRefNumber} paid — Transaction: ${TransID}`);
+  res.json({ResultCode: 0, ResultDesc: "Confirmed"});
+};
