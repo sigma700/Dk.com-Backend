@@ -11,9 +11,9 @@ import {paymentRouter} from "./routes/paymentsRoute.js";
 
 const app = express();
 
+app.use(express.json());
+app.use(express.urlencoded({extended: true})); // Parse URL-encoded bodies
 app.use(
-  express.json(),
-
   session({
     secret: process.env.WEBTOKEN, // used to sign the session ID cookie
     resave: false,
@@ -37,9 +37,10 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api", userRouter, jokesRouter, storeRouter, paymentRouter);
+app.use("/api", userRouter, jokesRouter);
+app.use("/store", storeRouter, paymentRouter);
 
 connectDb();
 app.listen(process.env.PORT, () => {
-  console.log(`Server listening on :  http://localhost:${process.env.PORT}`);
+  console.log(`Server listening on : http://localhost:${process.env.PORT}`);
 });

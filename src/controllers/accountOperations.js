@@ -8,7 +8,6 @@ import {sendverMail} from "../../service/emails/verMail.js";
 
 export const createAccount = async (req, res) => {
   const {firstName, lastName, email, password} = req.body;
-  // {userId} = req.params;
 
   checkPass(res, password);
 

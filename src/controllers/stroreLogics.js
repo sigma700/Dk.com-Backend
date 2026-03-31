@@ -1,6 +1,5 @@
 import {addToCart} from "../../utils/addToCart.js";
 import {Cart, Order, Product} from "../database/models/storeSchema.js";
-import {User} from "../database/models/userSchema.js";
 
 export const useStoreLogic = async (req, res) => {
   //allow the admin to create the products that they are selling
@@ -29,7 +28,7 @@ export const useStoreLogic = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Creted the new product",
-      deta: createdProducts,
+      data: createdProducts,
     });
 
     await createdProducts.save();
@@ -111,6 +110,24 @@ export const getProductsSrch = async (req, res) => {
       message:
         "There was a problem somewhere in the code , check the console for more info about the error !",
       data: null,
+    });
+  }
+};
+
+export const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json({
+      sucess: true,
+      message: "Here are all the products found ",
+      data: products,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(404).json({
+      sucess: false,
+      message: "Check console for more info about the error please !",
     });
   }
 };
