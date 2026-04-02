@@ -8,7 +8,7 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 import {attachUserId, setOwner} from "../utils/decodeJwt.js";
 import {paymentRouter} from "./routes/paymentsRoute.js";
-
+import cors from "cors";
 const app = express();
 
 app.use(express.json());
@@ -27,6 +27,13 @@ app.use(
 );
 
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5713",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  }),
+);
 app.use(attachUserId);
 app.use(setOwner);
 
