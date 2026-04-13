@@ -19,7 +19,7 @@ export const addToCart = async (
     {
       [ownerField]: ownerValue,
       status: "active",
-      " items.product": productId,
+      "items.product": productId,
     },
     {
       $inc: {"items.$.quantity": quantity},
