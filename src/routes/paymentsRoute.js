@@ -3,12 +3,11 @@
 import {Router} from "express";
 import {
   acceptPayment,
-  initiatePayments,
+  initiatePayment,
 } from "../controllers/paymentController.js";
-import {getAccessToken} from "../../utils/payments.js";
 
 export const paymentRouter = Router();
 
-paymentRouter.get("/getToken", getAccessToken);
-paymentRouter.post("/makePayment/:orderId", initiatePayments);
+// paymentRouter.get("/getToken", getAccessToken);
+paymentRouter.post("/makePayment/:orderId", initiatePayment);
 paymentRouter.post("/paymentTest", acceptPayment);

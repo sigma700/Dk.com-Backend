@@ -3,11 +3,14 @@ import multer from "multer";
 import {
   createOrder,
   getAllProducts,
+  getCart,
   getProductData,
   getProductsSrch,
+  getShippingRates,
   updateCart,
   useStoreLogic,
 } from "../controllers/stroreLogics.js";
+import {attachUserId} from "../../utils/decodeJwt.js";
 
 export const storeRouter = Router();
 
@@ -34,13 +37,14 @@ const upload = multer({
 
 // Product routes
 storeRouter.get("/get-all-products", getAllProducts);
+storeRouter.get("/getCart", getCart);
 storeRouter.get("/get-searched", getProductsSrch);
 storeRouter.get("/get-product/:id", getProductData);
 storeRouter.post("/create-product", upload.single("image"), useStoreLogic);
-
+storeRouter.get("/shipping/rates", getShippingRates);
 // Cart routes (consider renaming to /cart/* if these are cart-related)
 storeRouter.post("/cart/add", updateCart);
-storeRouter.post("/cart/order", createOrder);
+storeRouter.post("/cart/order", attachUserId, createOrder);
 
 // Optional: Add error handling middleware for multer
 storeRouter.use((err, req, res, next) => {

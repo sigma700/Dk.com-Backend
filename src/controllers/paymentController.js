@@ -1,226 +1,151 @@
 import axios from "axios";
-import {getAccessToken} from "../../utils/payments.js";
+import {paystackRequest} from "../../utils/payments.js";
 import "dotenv/config";
 import {Order} from "../database/models/storeSchema.js";
 import {formatPhone} from "../../utils/numberFormater.js";
 import {Payment} from "../database/models/paymentSchema.js";
 
-export const initiatePayments = async (req, res) => {
+export const initiatePayment = async (req, res) => {
   try {
     const {orderId} = req.params;
+    const userId = req.user?._id;
 
-    const order = await Order.findById({
-      _id: orderId,
+    const order = await Order.findById(orderId).populate("user");
+    if (!order) {
+      return res.status(404).json({success: false, message: "Order not found"});
+    }
+
+    // const phone = formatPhone(order.shippingAddress?.phoneNumber);
+    const phone = "+254710000000";
+    console.log("Formatted phone:", phone); // should be 254792624342
+    if (!phone) {
+      return res
+        .status(400)
+        .json({success: false, message: "Missing phone number in order"});
+    }
+
+    const email = order.user?.email || order.shippingAddress?.email;
+    if (!email) {
+      return res
+        .status(400)
+        .json({success: false, message: "Missing email address"});
+    }
+
+    const amount = order.total;
+    const firstName = order.user?.firstName || order.shippingAddress?.firstName;
+    const lastName = order.user?.lastName || order.shippingAddress?.lastName;
+
+    const payment = await Payment.create({
+      order: order._id,
+      user: userId || null,
+      transactionId: `PENDING-${Date.now()}`,
+      amount,
+      msisdn: phone,
+      firstName,
+      lastName,
+      billRefNumber: order._id.toString(),
+      status: "pending",
     });
 
-    if (!order) {
-      return res.status(404).json({
-        sucess: false,
-        message: "Order not found !",
+    // Call Paystack
+    const response = await paystackRequest("/charge", {
+      email,
+      amount: amount * 100,
+      currency: "KES",
+      mobile_money: {phone, provider: "mpesa"}, // use "mpesa" for live keys
+      metadata: {
+        orderId: order._id.toString(),
+        paymentId: payment._id.toString(),
+      },
+    });
+
+    console.log("🔵 Paystack response:", JSON.stringify(response, null, 2));
+
+    // Check if Paystack returned an error
+    if (!response.status) {
+      await Payment.findByIdAndUpdate(payment._id, {status: "failed"});
+      return res.status(400).json({
+        success: false,
+        message: response.message || "Payment initiation failed",
       });
     }
 
-    const subTotal = order.total;
-    const phoneNumber = formatPhone(order.shippingAddress.phoneNumber);
+    const {reference, status, display_text, gateway_response} = response.data;
+    await Payment.findByIdAndUpdate(payment._id, {transactionId: reference});
 
-    const token = await getAccessToken();
+    // Determine what to tell the frontend
+    let frontendMessage =
+      display_text ||
+      gateway_response ||
+      "STK push sent. Complete payment on your phone.";
+    if (status === "pending" || status === "processing") {
+      frontendMessage =
+        "Check your phone for the M‑Pesa prompt. Complete payment to finalize order.";
+    } else if (status === "send_pin" || status === "send_otp") {
+      frontendMessage =
+        "Additional verification required. Follow the prompts on your phone.";
+    }
 
-    const response = await axios.post(
-      `${process.env.DARAJA_BASE_URL}/mpesa/c2b/v1/simulate`,
-      {
-        ShortCode: process.env.SHORT_CODE,
-        CommandID: "CustomerPayBillOnline",
-        Amount: subTotal,
-        Msisdn: phoneNumber,
-        BillRefNumber: "Sigma.com",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    console.log("Payment simulated:", response.data);
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Payment successfully initiated!",
-      data: response.data,
+      message: frontendMessage,
+      data: {
+        reference,
+        paystackStatus: status,
+      },
     });
   } catch (error) {
-    console.error("Simulation Failed", error.response?.data || error.message);
-    res.status(500).json({
-      success: false,
-      message: "Check console for error details",
-    });
+    console.error("initiatePayment error:", error.message);
+    res
+      .status(500)
+      .json({success: false, message: "Payment initiation failed"});
   }
 };
 
 export const acceptPayment = async (req, res) => {
-  // 1. Acknowledge Safaricom immediately — must respond fast
-  res.json({ResultCode: 0, ResultDesc: "Received"});
+  const secret = process.env.PAYSTACK_SECRET_KEY;
+  const hash = crypto
+    .createHmac("sha512", secret)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
 
-  const {
-    TransID,
-    TransactionType,
-    TransAmount,
-    MSISDN,
-    FirstName,
-    MiddleName,
-    LastName,
-    BusinessShortCode,
-    BillRefNumber,
-    InvoiceNumber,
-    OrgAccountBalance,
-    TransTime,
-    ResultCode,
-    ResultDesc,
-  } = req.body;
+  if (hash !== req.headers["x-paystack-signature"]) {
+    console.error("❌ Webhook signature mismatch");
+    return res.status(401).send("Unauthorized");
+  }
+
+  // Acknowledge immediately
+  res.status(200).send("OK");
+
+  const event = req.body;
+  if (event.event !== "charge.success") return;
+
+  const {reference, amount, paid_at, customer, metadata} = event.data;
+  const phone = customer?.phone?.replace(/^\+/, "");
+  const paidAmount = amount / 100;
 
   try {
-    // 2. Validate required fields are present
-    if (ResultCode === undefined || ResultCode === null) {
-      console.error("Invalid callback — missing ResultCode", req.body);
-      return;
-    }
-
-    if (
-      !TransAmount ||
-      isNaN(Number(TransAmount)) ||
-      Number(TransAmount) <= 0
-    ) {
-      console.error("Invalid callback — bad TransAmount", TransAmount);
-      return;
-    }
-
-    if (!MSISDN || !/^2547\d{8}$/.test(MSISDN)) {
-      console.error("Invalid callback — bad MSISDN", MSISDN);
-      return;
-    }
-
-    if (!BillRefNumber) {
-      console.error("Invalid callback — missing BillRefNumber");
-      return;
-    }
-
-    // 3. Handle failed payment
-    if (ResultCode !== 0) {
-      await Payment.create({
-        transactionId: TransID || `FAILED-${Date.now()}`,
-        amount: Number(TransAmount),
-        msisdn: MSISDN,
-        billRefNumber: BillRefNumber,
-        status: "failed",
-        resultCode: ResultCode,
-        resultDesc: ResultDesc,
-      });
-
-      console.warn(
-        `Payment failed — BillRef: ${BillRefNumber} | Reason: ${ResultDesc}`,
-      );
-      return;
-    }
-
-    // 4. Validate TransID exists on success
-    if (!TransID) {
-      console.error(
-        "Invalid callback — successful payment missing TransID",
-        req.body,
-      );
-      return;
-    }
-
-    // 5. Idempotency check — prevent duplicate processing
-    const existing = await Payment.findOne({transactionId: TransID});
-    if (existing) {
-      console.warn(
-        `Duplicate callback received for TransID: ${TransID} — skipping`,
-      );
-      return;
-    }
-
-    const order = await Order.findOne({
-      $or: [
-        // Support both ObjectId and custom ref, depending on your fix
-        ...(mongoose.isValidObjectId(BillRefNumber)
-          ? [{_id: BillRefNumber}]
-          : []),
-        {billRefNumber: BillRefNumber},
-      ],
-    });
-
-    if (!order) {
-      console.error(`Order not found for BillRefNumber: ${BillRefNumber}`);
-      // Still save the payment — don't lose the transaction record
-      await Payment.create({
-        transactionId: TransID,
-        transactionType: TransactionType,
-        amount: Number(TransAmount),
-        msisdn: MSISDN,
-        firstName: FirstName,
-        middleName: MiddleName,
-        lastName: LastName,
-        businessShortCode: BusinessShortCode,
-        billRefNumber: BillRefNumber,
-        invoiceNumber: InvoiceNumber,
-        orgAccountBalance: OrgAccountBalance,
-        transactionTime: TransTime,
+    const payment = await Payment.findOneAndUpdate(
+      {transactionId: reference},
+      {
         status: "completed",
-        resultCode: ResultCode,
-        orderLinked: false, // flag for manual reconciliation
-      });
-      return;
-    }
-
-    // 7. Validate amount matches order total (fraud prevention)
-    if (Number(TransAmount) < order.total) {
-      console.error(
-        `Amount mismatch — Expected: ${order.total}, Got: ${TransAmount} | Order: ${order._id}`,
-      );
-      await Payment.create({
-        transactionId: TransID,
-        amount: Number(TransAmount),
-        msisdn: MSISDN,
-        billRefNumber: BillRefNumber,
-        status: "amount_mismatch",
-        resultCode: ResultCode,
-        orderLinked: true,
-        order: order._id,
-      });
-      return;
-    }
-
-    // 8. Save payment and update order atomically
-    await Promise.all([
-      Payment.create({
-        order: order._id,
-        transactionId: TransID,
-        transactionType: TransactionType,
-        amount: Number(TransAmount),
-        msisdn: MSISDN,
-        firstName: FirstName,
-        middleName: MiddleName,
-        lastName: LastName,
-        businessShortCode: BusinessShortCode,
-        billRefNumber: BillRefNumber,
-        invoiceNumber: InvoiceNumber,
-        orgAccountBalance: OrgAccountBalance,
-        transactionTime: TransTime,
-        status: "completed",
-        resultCode: ResultCode,
-        orderLinked: true,
-      }),
-      Order.findByIdAndUpdate(order._id, {
-        paymentStatus: "paid",
-        paidAt: new Date(),
-      }),
-    ]);
-
-    console.log(
-      `Order ${order._id} paid — TransID: ${TransID} | Amount: KES ${TransAmount}`,
+        transactionType: "mobile_money",
+        amount: paidAmount,
+        msisdn: phone,
+        firstName: customer?.first_name,
+        lastName: customer?.last_name,
+      },
+      {new: true},
     );
+
+    if (payment && payment.order) {
+      await Order.findByIdAndUpdate(payment.order, {
+        paymentStatus: "paid",
+        paidAt: new Date(paid_at),
+      });
+      console.log(`✅ Order ${payment.order} paid via webhook`);
+    }
   } catch (err) {
-    console.error("acceptPayment processing error:", err.message, err);
+    console.error("Webhook error:", err);
   }
 };

@@ -1,64 +1,28 @@
-//Here i want to have the order details for future refernce
-import {Schema, model} from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const paymentSchema = new Schema(
   {
-    order: {
-      type: Schema.Types.ObjectId,
-      ref: "Order",
-      required: true,
-    },
+    order: {type: Schema.Types.ObjectId, ref: "Order", required: true},
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
+      default: null,
     },
-
-    transactionId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-
-    transactionType: {
-      type: String,
-    },
-
-    amount: {
-      type: Number,
-      required: true,
-    },
-
-    msisdn: {
-      type: String,
-      required: true,
-    },
-
-    firstName: {
-      type: String,
-    },
-    middleName: {
-      type: String,
-    },
-    lastName: {
-      type: String,
-    },
-
-    businessShortCode: {
-      type: String,
-    },
-
-    billRefNumber: {
-      type: String,
-    },
-
+    transactionId: {type: String, required: true},
+    amount: {type: Number, required: true},
+    msisdn: {type: String, required: true},
+    firstName: String,
+    lastName: String,
+    billRefNumber: String,
     status: {
       type: String,
       enum: ["pending", "completed", "failed"],
-      default: "completed",
+      default: "pending",
     },
+    transactionType: String,
   },
   {timestamps: true},
 );
 
-export const Payment = model("Payment", paymentSchema);
+export const Payment = mongoose.model("Payment", paymentSchema);
