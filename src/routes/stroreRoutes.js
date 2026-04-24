@@ -4,6 +4,7 @@ import {
   createOrder,
   getAllProducts,
   getCart,
+  getOrderById,
   getProductData,
   getProductsSrch,
   getShippingRates,
@@ -40,9 +41,10 @@ storeRouter.get("/get-all-products", getAllProducts);
 storeRouter.get("/getCart", getCart);
 storeRouter.get("/get-searched", getProductsSrch);
 storeRouter.get("/get-product/:id", getProductData);
+storeRouter.get("/order/:id", attachUserId, getOrderById);
 storeRouter.post("/create-product", upload.single("image"), useStoreLogic);
 storeRouter.get("/shipping/rates", getShippingRates);
-// Cart routes (consider renaming to /cart/* if these are cart-related)
+
 storeRouter.post("/cart/add", updateCart);
 storeRouter.post("/cart/order", attachUserId, createOrder);
 

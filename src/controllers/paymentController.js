@@ -15,9 +15,8 @@ export const initiatePayment = async (req, res) => {
       return res.status(404).json({success: false, message: "Order not found"});
     }
 
-    // const phone = formatPhone(order.shippingAddress?.phoneNumber);
     const phone = "+254710000000";
-    console.log("Formatted phone:", phone); // should be 254792624342
+    console.log("Formatted phone:", phone); //
     if (!phone) {
       return res
         .status(400)
@@ -47,12 +46,11 @@ export const initiatePayment = async (req, res) => {
       status: "pending",
     });
 
-    // Call Paystack
     const response = await paystackRequest("/charge", {
       email,
       amount: amount * 100,
       currency: "KES",
-      mobile_money: {phone, provider: "mpesa"}, // use "mpesa" for live keys
+      mobile_money: {phone, provider: "mpesa"},
       metadata: {
         orderId: order._id.toString(),
         paymentId: payment._id.toString(),
@@ -61,7 +59,6 @@ export const initiatePayment = async (req, res) => {
 
     console.log("🔵 Paystack response:", JSON.stringify(response, null, 2));
 
-    // Check if Paystack returned an error
     if (!response.status) {
       await Payment.findByIdAndUpdate(payment._id, {status: "failed"});
       return res.status(400).json({

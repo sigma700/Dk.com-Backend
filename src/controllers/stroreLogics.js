@@ -370,6 +370,30 @@ export const createOrder = async (req, res) => {
   }
 };
 
+//fetching an order
+export const getOrderById = async (req, res) => {
+  try {
+    const {id} = req.params;
+    const order = await Order.findById(id)
+      .populate("user", "email firstName lastName")
+      .populate("items.product", "name price image");
+
+    if (!order) {
+      return res.status(404).json({success: false, message: "Order not found"});
+    }
+
+    // Optional: check if the logged-in user owns the order (for security)
+    if (req.user && order.user && order.user._id.toString() !== req.user.id) {
+      return res.status(403).json({success: false, message: "Unauthorized"});
+    }
+
+    res.status(200).json({success: true, data: order});
+  } catch (error) {
+    console.error("Get order error:", error);
+    res.status(500).json({success: false, message: "Server error"});
+  }
+};
+
 export const checkOut = async (req, res) => {
   // placeholder for payment initiation
 };
