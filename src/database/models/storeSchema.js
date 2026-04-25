@@ -13,7 +13,18 @@ const productSchema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Consumable", "Electronic", "Bathroom"],
+      enum: [
+        "Consumable",
+        "Electronic",
+        "Bathroom",
+        "All",
+        "Face Care",
+        "Body Care",
+        "Hair & Scalp",
+        "Wellness Teas",
+        "Essential Oils",
+        "Bundles",
+      ],
     },
     image: {
       data: {type: Buffer, required: true}, // the binary
