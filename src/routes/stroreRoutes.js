@@ -2,6 +2,7 @@ import {Router} from "express";
 import multer from "multer";
 import {
   createOrder,
+  getAllOrders,
   getAllProducts,
   getCart,
   getOrderById,
@@ -42,6 +43,7 @@ storeRouter.get("/getCart", getCart);
 storeRouter.get("/get-searched", getProductsSrch);
 storeRouter.get("/get-product/:id", getProductData);
 storeRouter.get("/order/:id", attachUserId, getOrderById);
+storeRouter.get("/orders", attachUserId, getAllOrders);
 storeRouter.post("/create-product", upload.single("image"), useStoreLogic);
 storeRouter.get("/shipping/rates", getShippingRates);
 

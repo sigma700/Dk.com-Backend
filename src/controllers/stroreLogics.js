@@ -394,6 +394,62 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+//for getting all orders now
+export const getAllOrders = async (req, res) => {
+  try {
+    // 1. Check authentication – req.user must exist and have an id
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required – please log in",
+      });
+    }
+
+    const {page = 1, limit = 10, status} = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build filter: only orders belonging to the logged‑in user
+    let filter = {user: req.user.id};
+    if (
+      status &&
+      [
+        "pending",
+        "processing",
+        "shipped",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ].includes(status)
+    ) {
+      filter.orderStatus = status;
+    }
+
+    // Fetch orders with pagination and populate product details
+    const orders = await Order.find(filter)
+      .populate("items.product", "name price image")
+      .sort({createdAt: -1}) // newest first
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Get total count for pagination metadata
+    const totalOrders = await Order.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: orders,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalOrders,
+        pages: Math.ceil(totalOrders / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    console.error("Get all orders error:", error);
+    res.status(500).json({success: false, message: "Server error"});
+  }
+};
+
 export const checkOut = async (req, res) => {
   // placeholder for payment initiation
 };

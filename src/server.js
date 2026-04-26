@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import {attachUserId, setOwner} from "../utils/decodeJwt.js";
 import {paymentRouter} from "./routes/paymentsRoute.js";
 import cors from "cors";
+import adressRouter from "./routes/adressesRouter.js";
 const app = express();
 
 app.use(express.json());
@@ -44,7 +45,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api", userRouter, jokesRouter);
+app.use("/api", userRouter, jokesRouter, adressRouter);
 app.use("/store", storeRouter, paymentRouter);
 
 connectDb();
