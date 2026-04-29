@@ -15,7 +15,7 @@ export const attachUserId = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.WEBTOKEN);
-    req.user = {id: decoded.userId}; // attach user info
+    req.user = decoded.userId; // attach user info
     next();
   } catch (err) {
     return res.status(401).json({error: "Invalid token"});
