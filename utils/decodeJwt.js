@@ -15,7 +15,8 @@ export const attachUserId = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.WEBTOKEN);
-    req.user = decoded.userId; // attach user info
+    req.user = decoded; // attach user info
+
     next();
   } catch (err) {
     return res.status(401).json({error: "Invalid token"});
@@ -23,15 +24,14 @@ export const attachUserId = (req, res, next) => {
 };
 
 export const setOwner = (req, res, next) => {
-  if (req.user && req.user.id) {
-    // after auth middleware
-    req.owner = {field: "user", value: req.user.id};
+  if (req.user && req.user.userId) {
+    // ✅ use correct field name
+    req.owner = {field: "user", value: req.user.userId};
   } else if (req.session && req.session.id) {
-    // from express-session
     req.owner = {field: "sessionId", value: req.session.id};
   } else {
-    // Fallback – should not happen if session is always present
-    return res.status(500).json({error: "No session"});
+    // Guest without session – still allow request, but owner is null/undefined
+    req.owner = null; // or set to a default guest ID if needed
   }
   next();
 };

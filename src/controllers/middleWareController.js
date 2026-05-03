@@ -2,7 +2,11 @@ import {User} from "../database/models/userSchema.js";
 
 export const checkAuth = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
+
+    console.log("AUTH HEADER:", req.headers.authorization);
+    console.log("COOKIE TOKEN:", req.cookies?.token);
+
     if (!userId) {
       return res.status(401).json({
         success: false,

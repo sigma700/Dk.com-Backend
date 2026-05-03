@@ -8,14 +8,14 @@ export const generateJwt = (res, userId) => {
     throw new Error("JWT secret key appears to be undefined !");
   }
 
-  const token = jwt.sign({userId}, process.env.WEBTOKEN, {
+  const token = jwt.sign({userId: userId}, process.env.WEBTOKEN, {
     expiresIn: "7d",
   });
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production ",
-    sameSite: "none",
+    secure: false,
+    sameSite: "lax",
   });
 
   return token;

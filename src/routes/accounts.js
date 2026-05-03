@@ -10,6 +10,6 @@ import {attachUserId} from "../../utils/decodeJwt.js";
 export const userRouter = Router();
 
 userRouter.post("/create-account", createAccount);
-userRouter.get("/login", logintoAccount);
+userRouter.post("/login", logintoAccount);
 userRouter.post("/verify", verifyEmail);
 userRouter.get("/checkAuth", attachUserId, checkAuth);

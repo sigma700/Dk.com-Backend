@@ -48,8 +48,6 @@ export const createAccount = async (req, res) => {
 };
 
 export const logintoAccount = async (req, res) => {
-  //logic to allow the user to log back into his or herf existing account
-
   const {email, password} = req.body;
 
   try {
