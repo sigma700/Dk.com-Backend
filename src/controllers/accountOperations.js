@@ -124,3 +124,37 @@ export const verifyEmail = async (req, res) => {
     });
   }
 };
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+        data: null,
+      });
+    }
+
+    const user = await User.findById(userId).select("-password"); // exclude password
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User fetched successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

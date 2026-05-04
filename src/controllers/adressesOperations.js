@@ -2,7 +2,7 @@ import {Order} from "../database/models/storeSchema.js";
 
 export const getAddresses = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const orders = await Order.find({user: userId}, "shippingAddress").lean();
 
