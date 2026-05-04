@@ -187,7 +187,7 @@ export const createOrder = async (req, res) => {
 
   try {
     const ownerField = req.user ? "user" : "sessionId";
-    const ownerValue = req.user ? req.user.id : req.session.id;
+    const ownerValue = req.user ? req.user.userId : req.session.id;
 
     const {
       email,
@@ -315,7 +315,7 @@ export const createOrder = async (req, res) => {
     };
 
     const orderData = {
-      user: req.user ? req.user.id : null,
+      user: req.user ? req.user.userId : null,
       items: orderItems,
       subtotal,
       shippingFee,
@@ -383,7 +383,11 @@ export const getOrderById = async (req, res) => {
     }
 
     // Optional: check if the logged-in user owns the order (for security)
-    if (req.user && order.user && order.user._id.toString() !== req.user.id) {
+    if (
+      req.user &&
+      order.user &&
+      order.user._id.toString() !== req.user.userId
+    ) {
       return res.status(403).json({success: false, message: "Unauthorized"});
     }
 
@@ -398,7 +402,7 @@ export const getOrderById = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     // 1. Check authentication – req.user must exist and have an id
-    if (!req.user || !req.user.id) {
+    if (!req.user || !req.user.userId) {
       return res.status(401).json({
         success: false,
         message: "Authentication required – please log in",
@@ -409,7 +413,7 @@ export const getAllOrders = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Build filter: only orders belonging to the logged‑in user
-    let filter = {user: req.user.id};
+    let filter = {user: req.user.userId};
     if (
       status &&
       [
