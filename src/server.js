@@ -30,7 +30,7 @@ app.use(
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5714",
+    origin: "https://dk-com-frontend.onrender.com/",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),
