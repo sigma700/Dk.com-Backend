@@ -39,7 +39,7 @@ const upload = multer({
 
 // Product routes
 storeRouter.get("/get-all-products", getAllProducts);
-storeRouter.get("/getCart", getCart);
+storeRouter.get("/getCart", attachUserId, getCart);
 storeRouter.get("/get-searched", getProductsSrch);
 storeRouter.get("/get-product/:id", getProductData);
 storeRouter.get("/order/:id", attachUserId, getOrderById);
