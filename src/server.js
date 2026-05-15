@@ -30,7 +30,7 @@ app.use(
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://mindfullivingke.onrender.com/",
+    origin: "https://mindfullivingke.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),
