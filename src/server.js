@@ -30,7 +30,7 @@ app.use(
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://dk-com-frontend.onrender.com",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),

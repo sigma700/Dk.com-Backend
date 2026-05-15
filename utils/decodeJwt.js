@@ -2,9 +2,11 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 export const attachUserId = (req, res, next) => {
-  let token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  let token = authHeader?.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : null;
 
-  // 2. If not, try cookie
   if (!token && req.cookies?.token) {
     token = req.cookies.token;
   }
@@ -15,10 +17,15 @@ export const attachUserId = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.WEBTOKEN);
-    req.user = decoded; // attach user info
-
+    req.user = decoded;
     next();
   } catch (err) {
+    // Clear the bad cookie so the client doesn't keep sending it
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
     return res.status(401).json({error: "Invalid token"});
   }
 };
